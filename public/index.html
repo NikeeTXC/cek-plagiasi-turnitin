@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cek Plagiasi — Turnitin · No Repository</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="paper-grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <div class="masthead-rule">
+      <span class="mono-label">LAYANAN PEMERIKSAAN NASKAH</span>
+      <span class="mono-label" id="today"></span>
+    </div>
+    <div class="masthead-main">
+      <h1>Cek<br /><em>Plagiasi.</em></h1>
+      <div class="stamp" aria-label="Mode tanpa repositori">
+        <span class="stamp-top">NO REPOSITORY</span>
+        <span class="stamp-mid">✕</span>
+        <span class="stamp-bot">TIDAK DIARSIPKAN</span>
+      </div>
+    </div>
+    <p class="lede">
+      Periksa kemiripan naskah Anda dengan mesin <strong>Turnitin</strong>.
+      Dokumen dianalisis lalu <u>dibuang</u> — <em>tidak pernah</em> disimpan
+      ke repositori pembanding Turnitin.
+    </p>
+    <div class="demo-banner" id="demoBanner" hidden>
+      ⚠ MODE DEMO — kredensial Turnitin belum diisi di <code>.env</code>. Hasil di bawah ini simulasi.
+    </div>
+  </header>
+
+  <main>
+    <!-- TAHAP 1: UNGGAH -->
+    <section class="panel" id="panelUpload">
+      <div class="panel-head">
+        <span class="panel-no">01</span>
+        <h2>Unggah Naskah</h2>
+      </div>
+
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Unggah dokumen">
+        <svg class="doc-icon" viewBox="0 0 48 60" fill="none" aria-hidden="true">
+          <path d="M4 2h28l12 12v44H4V2z" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M32 2v12h12" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M12 26h24M12 34h24M12 42h16" stroke="currentColor" stroke-width="2.5"/>
+        </svg>
+        <p class="drop-title">Seret dokumen ke sini</p>
+        <p class="drop-sub">atau <button type="button" class="linklike" id="browseBtn">pilih dari perangkat</button></p>
+        <p class="drop-meta">PDF · DOCX — maks. 100 MB</p>
+        <input type="file" id="fileInput" hidden accept=".pdf,.docx" />
+      </div>
+
+      <div class="file-card" id="fileCard" hidden>
+        <div class="file-card-info">
+          <span class="file-name" id="fileName"></span>
+          <span class="file-size mono-label" id="fileSize"></span>
+        </div>
+        <button type="button" class="linklike danger" id="removeFile">hapus</button>
+      </div>
+
+      <fieldset class="options">
+        <legend class="mono-label">PENGATURAN LAPORAN</legend>
+        <label class="check">
+          <input type="checkbox" id="optQuotes" checked />
+          <span class="box" aria-hidden="true"></span>
+          Kecualikan kutipan
+        </label>
+        <label class="check">
+          <input type="checkbox" id="optBiblio" checked />
+          <span class="box" aria-hidden="true"></span>
+          Kecualikan daftar pustaka
+        </label>
+      </fieldset>
+
+      <button type="button" class="btn-primary" id="submitBtn" disabled>
+        MULAI PEMERIKSAAN <span class="arrow">→</span>
+      </button>
+      <p class="error-note" id="uploadError" hidden></p>
+    </section>
+
+    <!-- TAHAP 2: PROSES -->
+    <section class="panel" id="panelProgress" hidden>
+      <div class="panel-head">
+        <span class="panel-no">02</span>
+        <h2>Sedang Diperiksa</h2>
+      </div>
+      <p class="checking-file mono-label" id="checkingFile"></p>
+      <ol class="steps">
+        <li class="step" data-step="UPLOADED"><span class="tick"></span>Dokumen diterima &amp; dikirim ke Turnitin</li>
+        <li class="step" data-step="PROCESSING"><span class="tick"></span>Turnitin membaca isi dokumen</li>
+        <li class="step" data-step="SIMILARITY"><span class="tick"></span>Analisis kemiripan (internet, publikasi, karya lain)</li>
+        <li class="step" data-step="COMPLETE"><span class="tick"></span>Laporan selesai</li>
+      </ol>
+      <p class="progress-note">Tanpa repositori: begitu selesai, naskah Anda tidak dijadikan bahan pembanding untuk siapa pun.</p>
+      <p class="error-note" id="progressError" hidden></p>
+    </section>
+
+    <!-- TAHAP 3: HASIL -->
+    <section class="panel" id="panelResult" hidden>
+      <div class="panel-head">
+        <span class="panel-no">03</span>
+        <h2>Hasil Pemeriksaan</h2>
+      </div>
+
+      <div class="result-grid">
+        <div class="gauge-wrap">
+          <svg class="gauge" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="gauge-track" cx="100" cy="100" r="84" />
+            <circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="84" />
+          </svg>
+          <div class="gauge-center">
+            <span class="gauge-num" id="scoreNum">0</span><span class="gauge-pct">%</span>
+            <span class="gauge-label mono-label">KEMIRIPAN</span>
+          </div>
+        </div>
+
+        <div class="result-detail">
+          <p class="verdict" id="verdict"></p>
+          <ul class="breakdown" id="breakdown"></ul>
+          <div class="result-actions">
+            <button type="button" class="btn-primary" id="viewerBtn">BUKA LAPORAN TURNITIN <span class="arrow">↗</span></button>
+            <button type="button" class="btn-secondary" id="pdfBtn">UNDUH PDF</button>
+            <button type="button" class="btn-secondary" id="againBtn">PERIKSA NASKAH LAIN</button>
+          </div>
+          <p class="error-note" id="resultError" hidden></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <div class="colophon-rule"></div>
+    <p>
+      <strong>Apa arti “No Repository”?</strong> Setiap submission dikirim dengan
+      <code>indexing_settings.add_to_index = false</code>, sehingga dokumen Anda
+      hanya dibandingkan terhadap sumber yang ada — tidak pernah ditambahkan ke
+      indeks/repositori Turnitin dan tidak akan muncul sebagai sumber pada
+      pemeriksaan orang lain di kemudian hari.
+    </p>
+    <p class="mono-label">DITENAGAI TURNITIN CORE API · DOKUMEN ANDA TETAP MILIK ANDA</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
