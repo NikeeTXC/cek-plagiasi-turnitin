@@ -68,7 +68,7 @@ Pastikan **Node.js versi 18 atau lebih baru** sudah terpasang.
 
 ```bash
 # 1. Clone repositori
-git clone https://github.com/USERNAME/cek-plagiasi-turnitin.git
+https://github.com/NikeeTXC/cek-plagiasi-turnitin.git
 cd cek-plagiasi-turnitin
 
 # 2. Install dependencies
